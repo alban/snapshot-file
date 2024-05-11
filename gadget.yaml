@@ -1,16 +1,14 @@
-name: 'TODO: Fill the gadget name'
-description: 'TODO: Fill the gadget description'
-tracers:
-  changeme_mytracer:
-    mapName: events
-    structName: event
+name: snapshot-file
+description: Gather information about open files
+homepageURL: https://github.com/alban/snapshot-file
+documentationURL: https://github.com/alban/snapshot-file
+sourceURL: https://github.com/alban/snapshot-file
+snapshotters:
+  files:
+    structName: gadget_file
 structs:
-  event:
+  gadget_file:
     fields:
-    - name: timestamp
-      description: Timestamp
-      attributes:
-        template: timestamp
     - name: pid
       description: Process ID
       attributes:
@@ -23,3 +21,39 @@ structs:
       description: Mount namespace ID
       attributes:
         template: ns
+    - name: ppid
+      description: 'TODO: Fill field description'
+      attributes:
+        width: 10
+        alignment: left
+        ellipsis: end
+    - name: uid
+      description: 'TODO: Fill field description'
+      attributes:
+        width: 10
+        alignment: left
+        ellipsis: end
+    - name: gid
+      description: 'TODO: Fill field description'
+      attributes:
+        width: 10
+        alignment: left
+        ellipsis: end
+    - name: fd
+      description: 'TODO: Fill field description'
+      attributes:
+        width: 10
+        alignment: left
+        ellipsis: end
+    - name: ino
+      description: 'TODO: Fill field description'
+      attributes:
+        width: 20
+        alignment: left
+        ellipsis: end
+    - name: f_op
+      description: 'TODO: Fill field description'
+      attributes:
+        width: 20
+        alignment: left
+        ellipsis: end
