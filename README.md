@@ -7,14 +7,14 @@ Gadget](https://inspektor-gadget.io/). It gather information about open files.
 
 ```bash
 $ export IG_EXPERIMENTAL=true
-$ sudo -E ig run ghcr.io/alban/snapshot-file:latest
+$ export addr_params=$(sudo ./addr.sh)
+$ sudo -E ig run ghcr.io/alban/snapshot-file:latest $(addr_params)
 ```
 
 ## Requirements
 
 - ig v0.26.0 (TBD)
-- Linux v6.0
-  - [ksym iterators](https://github.com/torvalds/linux/commit/647cafa223490)
+- Linux v6.0 (TBD)
 
 ## License
 

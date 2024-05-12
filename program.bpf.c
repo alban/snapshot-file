@@ -16,25 +16,31 @@
 #define TASK_COMM_LEN 16
 #endif
 
-#ifndef KSYM_NAME_LEN
-#define KSYM_NAME_LEN 512
-#endif
+const volatile __u64 socket_file_ops_addr = 0;
+const volatile __u64 bpf_map_fops_addr = 0;
+const volatile __u64 bpf_prog_fops_addr = 0;
+const volatile __u64 bpf_link_fops_addr = 0;
+const volatile __u64 eventpoll_fops_addr = 0;
+const volatile __u64 pipefifo_fops_addr = 0;
+const volatile __u64 tty_fops_addr = 0;
 
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-#endif
+GADGET_PARAM(socket_file_ops_addr);
+GADGET_PARAM(bpf_map_fops_addr);
+GADGET_PARAM(bpf_prog_fops_addr);
+GADGET_PARAM(bpf_link_fops_addr);
+GADGET_PARAM(eventpoll_fops_addr);
+GADGET_PARAM(pipefifo_fops_addr);
+GADGET_PARAM(tty_fops_addr);
 
-struct {
-	const char name[KSYM_NAME_LEN];
-	volatile __u64 addr;
-} addrs[] = {
-	{"socket_file_ops", 0},
-	{"bpf_map_fops_addr", 0},
-	{"bpf_prog_fops_addr", 0},
-	{"bpf_link_fops_addr", 0},
-	{"eventpoll_fops_addr", 0},
-	{"pipe_inode_info_addr", 0},
-	{"tty_fops_addr", 0},
+enum file_type {
+  unknown,
+  socket,
+  bpfmap,
+  bpfprog,
+  bpflink,
+  eventpoll,
+  pipe,
+  tty,
 };
 
 struct gadget_file {
@@ -46,51 +52,32 @@ struct gadget_file {
   __u32 gid;
   __u32 fd;
   __u64 ino;
-  __u64 f_op;
+  enum file_type file_type;
 };
 
-//GADGET_SNAPSHOTTER(ksyms, gadget_file, iter_ksym);
 GADGET_SNAPSHOTTER(files, gadget_file, iter_file);
 
-// iterators on ksym added in Linux 6.0
+static __always_inline enum file_type f_op_to_file_type(__u64 f_op) {
+  if (f_op == 0)
+    return unknown;
 
-// For some reason, vmlinux.h only has bpf_iter__ksym in arm64.
-#ifdef __TARGET_ARCH_x86
-struct bpf_iter__ksym {
-        union {
-                struct bpf_iter_meta *meta;
-        };
-        union {
-                struct kallsym_iter *ksym;
-        };
-};
-#endif
+  if (f_op == socket_file_ops_addr)
+    return socket;
+  if (f_op == bpf_map_fops_addr)
+    return bpfmap;
+  if (f_op == bpf_prog_fops_addr)
+    return bpfprog;
+  if (f_op == bpf_link_fops_addr)
+    return bpflink;
+  if (f_op == eventpoll_fops_addr)
+    return eventpoll;
+  if (f_op == pipefifo_fops_addr)
+    return pipe;
+  if (f_op == tty_fops_addr)
+    return tty;
 
-/*
-SEC("iter/ksym")
-int iter_ksym(struct bpf_iter__ksym *ctx)
-{
-	struct seq_file *seq = ctx->meta->seq;
-	struct kallsym_iter *iter = ctx->ksym;
-	__u32 seq_num = ctx->meta->seq_num;
-	unsigned long value;
-	char type;
-	int i;
-
-	addrs[0].addr = 42;
-
-	if (!iter)
-		return 0;
-
-#pragma unroll
-	for (i = 0; i < ARRAY_SIZE(addrs); i++) {
-		if (__builtin_memcmp(addrs[i].name, iter->name,
-				     sizeof(addrs[i].name)) == 0)
-			addrs[i].addr = iter->value;
-	}
-	return 0;
+  return unknown;
 }
-*/
 
 // This iterates on all the open files (from all processes).
 SEC("iter/task_file")
@@ -101,6 +88,7 @@ int iter_file(struct bpf_iter__task_file *ctx) {
   struct task_struct *parent;
   pid_t parent_pid;
   u64 mntns_id;
+  long ret;
 
   struct gadget_file gadget_file = {};
 
@@ -111,7 +99,8 @@ int iter_file(struct bpf_iter__task_file *ctx) {
   if (gadget_should_discard_mntns_id(mntns_id))
     return 0;
 
-  __u64 f_op = (__u64)(file->f_op);
+  gadget_file.file_type = f_op_to_file_type((__u64)(file->f_op));
+
 
   parent = task->real_parent;
   if (!parent)
@@ -127,9 +116,8 @@ int iter_file(struct bpf_iter__task_file *ctx) {
   gadget_file.gid = task->cred->gid.val;
   gadget_file.fd = ctx->fd;
   gadget_file.ino = file->f_inode->i_ino;
-  gadget_file.f_op = f_op;
 
-  bpf_seq_write(seq, &file, sizeof(file));
+  bpf_seq_write(seq, &gadget_file, sizeof(gadget_file));
 
   return 0;
 }

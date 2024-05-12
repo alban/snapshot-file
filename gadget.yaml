@@ -22,38 +22,63 @@ structs:
       attributes:
         template: ns
     - name: ppid
-      description: 'TODO: Fill field description'
+      description: Parent process ID
       attributes:
-        width: 10
-        alignment: left
-        ellipsis: end
+        template: pid
     - name: uid
-      description: 'TODO: Fill field description'
+      description: User ID
       attributes:
-        width: 10
-        alignment: left
-        ellipsis: end
+        hidden: true
+        template: uid
     - name: gid
-      description: 'TODO: Fill field description'
+      description: Group ID
       attributes:
-        width: 10
-        alignment: left
-        ellipsis: end
+        hidden: true
+        template: uid
     - name: fd
-      description: 'TODO: Fill field description'
+      description: File descriptor
       attributes:
         width: 10
         alignment: left
         ellipsis: end
     - name: ino
-      description: 'TODO: Fill field description'
+      description: Inode
       attributes:
         width: 20
         alignment: left
         ellipsis: end
-    - name: f_op
-      description: 'TODO: Fill field description'
+    - name: file_type
+      description: File type
       attributes:
-        width: 20
+        width: 16
         alignment: left
         ellipsis: end
+ebpfParams:
+  bpf_link_fops_addr:
+    key: bpf_link_fops_addr
+    defaultValue: ""
+    description: 'symbol address: please use addr.sh'
+  bpf_map_fops_addr:
+    key: bpf_map_fops_addr
+    defaultValue: ""
+    description: 'symbol address: please use addr.sh'
+  bpf_prog_fops_addr:
+    key: bpf_prog_fops_addr
+    defaultValue: ""
+    description: 'symbol address: please use addr.sh'
+  eventpoll_fops_addr:
+    key: eventpoll_fops_addr
+    defaultValue: ""
+    description: 'symbol address: please use addr.sh'
+  pipefifo_fops_addr:
+    key: pipefifo_fops_addr
+    defaultValue: ""
+    description: 'symbol address: please use addr.sh'
+  socket_file_ops_addr:
+    key: socket_file_ops_addr
+    defaultValue: ""
+    description: 'symbol address: please use addr.sh'
+  tty_fops_addr:
+    key: tty_fops_addr
+    defaultValue: ""
+    description: 'symbol address: please use addr.sh'
